@@ -1,0 +1,56 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model DocumentCategory {
+  id        String     @id @default(cuid())
+  name      String     @unique
+  documents Document[]
+
+  @@map("document_categories")
+}
+
+model Document {
+  id                   String         @id @default(cuid())
+  doc_number           String
+  title                String
+  date                 DateTime       @db.Date
+  academic_year        Int
+  category_id          String
+  category             DocumentCategory @relation(fields: [category_id], references: [id])
+  google_drive_file_id String?
+  view_link            String?
+  download_link        String?
+  files                DocumentFile[]
+  tags                 String[]
+  is_public            Boolean        @default(false)
+  role_created         String         @default("admin")
+  created_at           DateTime       @default(now())
+  updated_at           DateTime       @updatedAt
+
+  @@index([academic_year])
+  @@index([category_id])
+  @@index([is_public])
+  @@map("documents")
+}
+
+model DocumentFile {
+  id                   String   @id @default(cuid())
+  document_id          String
+  document             Document @relation(fields: [document_id], references: [id], onDelete: Cascade)
+  file_name            String
+  mime_type            String   @default("application/octet-stream")
+  google_drive_file_id String
+  view_link            String
+  download_link        String
+  sort_order           Int      @default(0)
+  created_at           DateTime @default(now())
+
+  @@index([document_id])
+  @@map("document_files")
+}
